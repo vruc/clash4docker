@@ -278,39 +278,44 @@ EOF
         log_info "✅ tun 模式已启用"
     else
         cat >> "${config}" << 'EOF'
-tun:
-  enable: false
-EOF
-        log_info "✅ tun 模式已禁用"
+    tun:
+    enable: false
+    EOF
+        log_info "✅ tun 模式已显式关闭"
     fi
-}
+    }
 
-# 注入 DNS 覆写配置
-inject_dns() {
+    # 注入 DNS 覆写配置
+    inject_dns() {
     local config="$1"
     local dns_override="$2"
+
     [ "$dns_override" != "true" ] && return 0
+
     log_info "🔗 正在覆写配置文件中的 DNS 配置..."
+
+    # 移除现有的 dns 配置块
     local temp_file=$(mktemp)
     awk '/^dns:/{skip=1; next} skip && /^[a-zA-Z]/{skip=0} !skip{print}' "${config}" > "${temp_file}"
     cp -f "${temp_file}" "${config}"
     rm -f "${temp_file}"
+
     cat >> "${config}" << 'EOF'
-dns:
-  enable: true
-  listen: 0.0.0.0:1053
-  ipv6: false
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  nameserver:
+    dns:
+    enable: true
+    listen: 0.0.0.0:1053
+    ipv6: false
+    enhanced-mode: fake-ip
+    fake-ip-range: 198.18.0.1/16
+    nameserver:
     - 223.5.5.5
     - 119.29.29.29
-  fallback:
+    fallback:
     - https://dns.cloudflare.com/dns-query
     - https://dns.google/dns-query
-EOF
+    EOF
     log_info "✅ DNS 配置已覆写"
-}
+    }
 
 
 # 更新配置文件中的 allow-lan
@@ -425,6 +430,7 @@ update_subscription() {
 
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
+        inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
@@ -465,6 +471,7 @@ SUB_URL=${SUB_URL}
 SECRET=${SECRET}
 ALLOW_LAN=${ALLOW_LAN}
 TUN_ENABLED=${TUN_ENABLED}
+DNS_OVERRIDE=${DNS_OVERRIDE}
 SUB_USER_AGENT=${SUB_USER_AGENT}
 ${cron_schedule} /app/update_sub.sh >> /var/log/subscription.log 2>&1
 EOF
@@ -502,6 +509,7 @@ SUB_CRON=$(echo "${SUB_CRON}" | sed "s/^['\"]//;s/['\"]$//")
 DOWNLOAD_PROXY=$(echo "${DOWNLOAD_PROXY}" | sed "s/^['\"]//;s/['\"]$//")
 ALLOW_LAN=$(echo "${ALLOW_LAN}" | sed "s/^['\"]//;s/['\"]$//")
 TUN_ENABLED=$(echo "${TUN_ENABLED}" | sed "s/^['\"]//;s/['\"]$//")
+DNS_OVERRIDE=$(echo "${DNS_OVERRIDE}" | sed "s/^['\"]//;s/['\"]$//")
 SUB_USER_AGENT=$(echo "${SUB_USER_AGENT}" | sed "s/^['\"]//;s/['\"]$//")
 
 # 确保配置目录存在
@@ -548,6 +556,7 @@ if [ -n "${SUB_URL}" ]; then
             ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
             # 注入 tun 配置
             inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
+        inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
             ensure_external_controller "${CONFIG_FILE}"
             
             if start_mihomo; then
@@ -596,6 +605,7 @@ if [ -n "${SUB_URL}" ]; then
         ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
+        inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         ensure_external_controller "${CONFIG_FILE}"
         
         # 启动或重启 mihomo
@@ -643,6 +653,7 @@ if [ -n "${SUB_URL}" ]; then
         
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
+        inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
