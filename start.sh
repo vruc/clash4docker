@@ -304,15 +304,17 @@ EOF
 dns:
   enable: true
   listen: 0.0.0.0:1053
-  ipv6: false
+  default-nameserver:
+    - 223.5.5.5
+    - 1.1.1.1
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "*.lan"
+    - "*.localhost"
   nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-  fallback:
-    - https://dns.cloudflare.com/dns-query
-    - https://dns.google/dns-query
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
 EOF
     log_info "✅ DNS 配置已覆写"
     }
