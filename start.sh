@@ -285,6 +285,34 @@ EOF
     fi
 }
 
+# 注入 DNS 覆写配置
+inject_dns() {
+    local config="$1"
+    local dns_override="$2"
+    [ "$dns_override" != "true" ] && return 0
+    log_info "🔗 正在覆写配置文件中的 DNS 配置..."
+    local temp_file=$(mktemp)
+    awk '/^dns:/{skip=1; next} skip && /^[a-zA-Z]/{skip=0} !skip{print}' "${config}" > "${temp_file}"
+    cp -f "${temp_file}" "${config}"
+    rm -f "${temp_file}"
+    cat >> "${config}" << 'EOF'
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  fallback:
+    - https://dns.cloudflare.com/dns-query
+    - https://dns.google/dns-query
+EOF
+    log_info "✅ DNS 配置已覆写"
+}
+
+
 # 更新配置文件中的 allow-lan
 update_allow_lan() {
     local config="$1"
