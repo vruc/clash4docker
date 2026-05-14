@@ -48,14 +48,14 @@ validate_config() {
     
     # 检查必要的关键字段
     local has_port=false
-    local has_proxies=false
+    local has_proxy_definitions=false
     
     if grep -qE "^port:" "${file}" || grep -qE "^mixed-port:" "${file}"; then
         has_port=true
     fi
     
-    if grep -qE "^proxies:" "${file}"; then
-        has_proxies=true
+    if grep -qE "^(proxies|proxy-providers):" "${file}"; then
+        has_proxy_definitions=true
     fi
     
     if [ "${has_port}" = "false" ]; then
@@ -63,8 +63,8 @@ validate_config() {
         return 1
     fi
     
-    if [ "${has_proxies}" = "false" ]; then
-        log_error "配置文件缺少 proxies 字段"
+    if [ "${has_proxy_definitions}" = "false" ]; then
+        log_error "配置文件缺少 proxies 或 proxy-providers 字段"
         return 1
     fi
     
