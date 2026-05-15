@@ -190,6 +190,7 @@ docker pull --platform linux/arm64 gangz1o/glash:latest
 | `TUN_ENABLED`      | 是否启用 TUN 模式，重启后自动恢复（需配合 Docker 权限）        | `true` 或 `false`         |
 | `DOWNLOAD_PROXY`   | 首次下载订阅时使用的外部代理（可选）                           | `http://192.168.1.1:7890` |
 | `SUB_USER_AGENT`   | 下载订阅时使用的 User-Agent，默认 `clash.meta`（可选）         | `clash.meta`              |
+| `DNS_OVERRIDE`        | DNS复写功能，此功能仅针对不含DNS规则内容的Clash订阅链接（可选）                 | `true` 或 `false`         |
 
 ### 工作逻辑
 
