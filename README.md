@@ -12,7 +12,7 @@
         </p>
         <p align="left" style="font-size: 14px; color: #57606a;">
           🎁 专属 <b>9 折</b> 优惠码：<code>ai8888</code>（全场通用）<br>
-          🔗 立即前往：<a href="https://doloffer.com" target="_blank"><b>DolOffer 官方网站</b></a> ｜ 📖 <a href="https://github.com/doloffer-g/guide/blob/main/readme.md" target="_blank"><b>Doloffer Guide</b></a>
+          🔗 立即前往：<a href="https://doloffer.com" target="_blank"><b>DolOffer 官方网站</b></a> ｜ 📖 <a href="https://github.com/doloffer-g/guide" target="_blank"><b>Doloffer Guide</b></a>
         </p>
       </td>
     </tr>
