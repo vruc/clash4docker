@@ -1,23 +1,3 @@
-<!-- DolOffer 赞助广告开始 -->
-<div align="center">
-  <table border="0">
-    <tr>
-      <td align="center" bgcolor="#f6f8fa" style="padding: 20px; border-radius: 8px; border: 1px solid #d0d7de;">
-        <a href="https://doloffer.com" target="_blank">
-          <img src="https://cdn.nodeimage.com/i/MbENUNiyjRdvIRrt0GjLTv6mhi41zPO0.webp" alt="DolOffer Logo" height="160"/>
-        </a>
-        <p align="left" style="font-size: 15px; color: #24292f; margin: 10px 0;">
-          全网超划算的 <b>ChatGPT Plus / Claude Pro</b> 会员充值平台！支持官方正版订阅，独立账号、共享车位应有尽有。多通道稳定续费，售后无忧，让您用更低的成本体验最顶尖的 AI 工具。
-        </p>
-        <p align="left" style="font-size: 14px; color: #57606a;">
-          🎁 专属 <b>9 折</b> 优惠码：<code>ai8888</code>（全场通用）<br>
-          🔗 立即前往：<a href="https://doloffer.com" target="_blank"><b>DolOffer 官方网站</b></a> ｜ 📖 <a href="https://github.com/doloffer-g/guide" target="_blank"><b>Doloffer Guide</b></a>
-        </p>
-      </td>
-    </tr>
-  </table>
-</div>
-<!-- DolOffer 赞助广告结束 -->
 
   
 # Clash for Docker介绍
@@ -482,7 +462,28 @@ https://docker.apiba.cn
 
 - [Mihomo](https://github.com/MetaCubeX/mihomo) - 强大的代理内核
 - [MetacubexD](https://github.com/MetaCubeX/metacubexd) - 现代化 Web Dashboard
-  
+<!-- DolOffer 赞助广告开始 -->
+<div align="center">
+  <table border="0">
+    <tr>
+      <td align="center" bgcolor="#f6f8fa" style="padding: 20px; border-radius: 8px; border: 1px solid #d0d7de;">
+        <a href="https://doloffer.com" target="_blank">
+          <img src="https://cdn.nodeimage.com/i/MbENUNiyjRdvIRrt0GjLTv6mhi41zPO0.webp" alt="DolOffer Logo" height="160"/>
+        </a>
+        <p align="left" style="font-size: 15px; color: #24292f; margin: 10px 0;">
+          全网超划算的 <b>ChatGPT Plus / Claude Pro</b> 会员充值平台！支持官方正版订阅，独立账号、共享车位应有尽有。多通道稳定续费，售后无忧，让您用更低的成本体验最顶尖的 AI 工具。
+        </p>
+        <p align="left" style="font-size: 14px; color: #57606a;">
+          🎁 专属 <b>9 折</b> 优惠码：<code>ai8888</code>（全场通用）<br>
+          🔗 立即前往：<a href="https://doloffer.com" target="_blank"><b>DolOffer 官方网站</b></a> ｜ 📖 <a href="https://github.com/doloffer-g/guide" target="_blank"><b>Doloffer Guide</b></a>
+        </p>
+      </td>
+    </tr>
+  </table>
+</div>
+<!-- DolOffer 赞助广告结束 -->
+
+
 ## License
 
 MIT
