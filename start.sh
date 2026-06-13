@@ -2,6 +2,7 @@
 
 CONFIG_DIR="/root/.config/mihomo"
 CONFIG_FILE="${CONFIG_DIR}/config.yaml"
+HOOK_DIR="/app/hooks.d"
 UI_DIR="/app/ui"
 GEODATA_DIR="/app/geodata"
 CRON_FILE="/etc/crontabs/root"
@@ -384,6 +385,45 @@ update_allow_lan() {
     log_info "✅ allow-lan 已更新为 ${allow_lan}"
 }
 
+
+
+# ==================== Hook 功能 ====================
+
+# 执行订阅更新后的 hook 脚本
+# 参数: config_file - 配置文件路径
+# 返回: 0=成功, 1=失败
+run_post_subscription_hooks() {
+    local config_file="$1"
+    
+    
+    # 执行目录中的所有可执行脚本（按字母顺序）
+    if [ -d "${HOOK_DIR}" ]; then
+        log_info "🔧 扫描 hook 目录: ${HOOK_DIR}"
+        local hook_count=0
+        
+        for script in $(find "${HOOK_DIR}" -maxdepth 1 -type f -executable | sort); do
+            hook_count=$((hook_count + 1))
+            log_info "🔧 执行 hook: $(basename "${script}")"
+            if bash "${script}" "${config_file}"; then
+                log_info "✅ Hook $(basename "${script}") 执行成功"
+            else
+                log_error "❌ Hook $(basename "${script}") 执行失败，停止启动流程"
+                return 1
+            fi
+        done
+        
+        if [ ${hook_count} -eq 0 ]; then
+            log_info "📁 Hook 目录 ${HOOK_DIR} 中没有可执行脚本"
+        else
+            log_info "✅ 共执行 ${hook_count} 个 hook"
+        fi
+    fi
+
+    return 0
+}
+
+
+
 # 确保 external-controller 配置正确（默认值: 0.0.0.0:9090）
 ensure_external_controller() {
     local config="$1"
@@ -478,6 +518,13 @@ update_subscription() {
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
         
+        # ========== 新增：执行外部 Hook ==========
+        if ! run_post_subscription_hooks "${CONFIG_FILE}"; then
+            log_error "❌ 执行外部Hook失败"
+            return 1
+        fi
+        # ========================================
+
         # 重启 mihomo
         restart_mihomo
         log_info "🎉 订阅更新完成"
@@ -651,6 +698,13 @@ if [ -n "${SUB_URL}" ]; then
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         ensure_external_controller "${CONFIG_FILE}"
         
+        # ========== 新增：执行外部 Hook ==========
+        if ! run_post_subscription_hooks "${CONFIG_FILE}"; then
+            log_error "❌ 执行外部Hook失败"
+            return 1
+        fi
+        # ========================================
+        
         # 启动或重启 mihomo
         if [ "${need_start}" = "true" ]; then
             if ! start_mihomo; then
@@ -700,6 +754,13 @@ if [ -n "${SUB_URL}" ]; then
         
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
+
+        # ========== 新增：执行外部 Hook ==========
+        if ! run_post_subscription_hooks "${CONFIG_FILE}"; then
+            log_error "❌ 执行外部Hook失败"
+            return 1
+        fi
+        # ========================================
         
         # 启动 mihomo
         if ! start_mihomo; then
