@@ -89,7 +89,7 @@ VOLUME ["/root/.config/mihomo"]
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD wget -q -O /dev/null http://127.0.0.1:9090/version || exit 1
+    CMD /bin/sh -c "if [ -n \"$SECRET\" ]; then wget -q --header=\"Authorization: Bearer $SECRET\" -O /dev/null http://127.0.0.1:9090/version; else wget -q -O /dev/null http://127.0.0.1:9090/version; fi || exit 1"
 
 # 使用 tini 作为 init 进程
 ENTRYPOINT ["/sbin/tini", "--"]
