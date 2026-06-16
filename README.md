@@ -192,7 +192,8 @@ docker pull --platform linux/arm64 gangz1o/glash:latest
 | `TUN_ENABLED`      | 是否启用 TUN 模式，重启后自动恢复（需配合 Docker 权限）        | `true` 或 `false`         |
 | `DOWNLOAD_PROXY`   | 首次下载订阅时使用的外部代理（可选）                           | `http://192.168.1.1:7890` |
 | `SUB_USER_AGENT`   | 下载订阅时使用的 User-Agent，默认 `clash.meta`（可选）         | `clash.meta`              |
-| `DNS_OVERRIDE`        | DNS复写功能，此功能仅针对不含DNS规则内容的Clash订阅链接（可选）                 | `true` 或 `false`         |
+| `DNS_OVERRIDE`     | DNS复写功能，此功能仅针对不含DNS规则内容的Clash订阅链接（可选）                 | `true` 或 `false`         |
+| `AUTHENTICATION`   | HTTP 基本认证凭据，格式 `username:password`，自动注入配置文件（可选） | `user:pass`               |
 
 ### 工作逻辑
 
@@ -216,11 +217,16 @@ docker pull --platform linux/arm64 gangz1o/glash:latest
    - 如果设置了 `SECRET`，会自动写入配置文件的 `secret` 字段
    - 方便统一管理 Dashboard 密码
 
-5. **ALLOW_LAN 注入**：
+5. **AUTHENTICATION 注入**：
+   - 如果设置了 `AUTHENTICATION`，会自动向配置文件写入 `authentication` 字段
+   - 格式为 `username:password`，支持同时设置多个凭据（用逗号分隔）
+   - 提供 HTTP 基本认证保护代理端口
+
+6. **ALLOW_LAN 注入**：
    - 如果设置了 `ALLOW_LAN`，会自动写入配置文件的 `allow-lan` 字段
    - 设置为 `true` 允许局域网连接，`false` 禁止
 
-6. **TUN_ENABLED 注入**：
+7. **TUN_ENABLED 注入**：
    - 如果设置了 `TUN_ENABLED=true`，每次启动和订阅更新后自动向配置写入 TUN 模式配置段
    - 解决了通过 Dashboard UI 开启 TUN 后重启丢失状态的问题
    - 需要同时在 docker-compose.yml 中开启 `NET_ADMIN` 权限和 `/dev/net/tun` 设备

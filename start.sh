@@ -185,6 +185,42 @@ update_secret() {
     log_info "✅ secret 已更新"
 }
 
+# 更新配置文件中的 authentication
+# 参数: config, authentication (格式: "username:password")
+update_authentication() {
+    local config="$1"
+    local auth="$2"
+
+    if [ -z "${auth}" ]; then
+        return 0
+    fi
+
+    log_info "🔗 正在更新配置文件中的 authentication..."
+
+    # 检查配置文件中是否已有 authentication 字段，如有则删除整个块
+    if grep -qE "^authentication:" "${config}"; then
+        local temp_file
+        if ! temp_file=$(mktemp); then
+            log_error "❌ 无法创建临时文件"
+            return 1
+        fi
+        awk '/^authentication:/{skip=1; next} skip && /^[a-zA-Z]/{skip=0} !skip{print}' "${config}" > "${temp_file}"
+        cp -f "${temp_file}" "${config}"
+        rm -f "${temp_file}"
+    fi
+
+    # 添加 authentication 配置
+    if grep -qE "^secret:" "${config}"; then
+        sed_inplace "/^secret:/a authentication:\n  - '${auth}'" "${config}"
+    elif grep -qE "^external-controller:" "${config}"; then
+        sed_inplace "/^external-controller:/a authentication:\n  - '${auth}'" "${config}"
+    else
+        sed_inplace "1i authentication:\n  - '${auth}'" "${config}"
+    fi
+
+    log_info "✅ authentication 已更新"
+}
+
 # 确保配置文件中包含 unified-delay 和 tcp-concurrent 设置
 force_boolean_key_true_preserve_comment() {
     local config="$1"
@@ -508,16 +544,21 @@ update_subscription() {
             update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
         fi
 
+        # 更新 authentication
+        if [ -n "${AUTHENTICATION}" ]; then
+            update_authentication "${CONFIG_FILE}" "${AUTHENTICATION}"
+        fi
+
         # 确保统一延迟和并发连接
         ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
 
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
-        
+
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
-        
+
         # ========== 新增：执行外部 Hook ==========
         if ! run_post_subscription_hooks "${CONFIG_FILE}"; then
             log_error "❌ 执行外部Hook失败"
@@ -563,6 +604,7 @@ ALLOW_LAN=${ALLOW_LAN}
 TUN_ENABLED=${TUN_ENABLED}
 DNS_OVERRIDE=${DNS_OVERRIDE}
 SUB_USER_AGENT=${SUB_USER_AGENT}
+AUTHENTICATION=${AUTHENTICATION}
 ${cron_schedule} /app/update_sub.sh >> /var/log/subscription.log 2>&1
 EOF
     
@@ -601,6 +643,7 @@ ALLOW_LAN=$(echo "${ALLOW_LAN}" | sed "s/^['\"]//;s/['\"]$//")
 TUN_ENABLED=$(echo "${TUN_ENABLED}" | sed "s/^['\"]//;s/['\"]$//")
 DNS_OVERRIDE=$(echo "${DNS_OVERRIDE}" | sed "s/^['\"]//;s/['\"]$//")
 SUB_USER_AGENT=$(echo "${SUB_USER_AGENT}" | sed "s/^['\"]//;s/['\"]$//")
+AUTHENTICATION=$(echo "${AUTHENTICATION}" | sed "s/^['\"]//;s/['\"]$//")
 
 # 确保配置目录存在
 mkdir -p "${CONFIG_DIR}"
@@ -641,6 +684,10 @@ if [ -n "${SUB_URL}" ]; then
             # 更新 allow-lan（如果设置了 ALLOW_LAN 环境变量）
             if [ -n "${ALLOW_LAN}" ]; then
                 update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
+            fi
+            # 更新 authentication（如果设置了 AUTHENTICATION 环境变量）
+            if [ -n "${AUTHENTICATION}" ]; then
+                update_authentication "${CONFIG_FILE}" "${AUTHENTICATION}"
             fi
             # 确保统一延迟和并发连接
             ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
@@ -691,20 +738,24 @@ if [ -n "${SUB_URL}" ]; then
         if [ -n "${ALLOW_LAN}" ]; then
             update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
         fi
+        # 更新 authentication（如果设置了 AUTHENTICATION 环境变量）
+        if [ -n "${AUTHENTICATION}" ]; then
+            update_authentication "${CONFIG_FILE}" "${AUTHENTICATION}"
+        fi
         # 确保统一延迟和并发连接
         ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
         ensure_external_controller "${CONFIG_FILE}"
-        
+
         # ========== 新增：执行外部 Hook ==========
         if ! run_post_subscription_hooks "${CONFIG_FILE}"; then
             log_error "❌ 执行外部Hook失败"
             return 1
         fi
         # ========================================
-        
+
         # 启动或重启 mihomo
         if [ "${need_start}" = "true" ]; then
             if ! start_mihomo; then
@@ -744,14 +795,19 @@ if [ -n "${SUB_URL}" ]; then
         if [ -n "${ALLOW_LAN}" ]; then
             update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
         fi
-        
+
+        # 更新 authentication（如果设置了 AUTHENTICATION 环境变量）
+        if [ -n "${AUTHENTICATION}" ]; then
+            update_authentication "${CONFIG_FILE}" "${AUTHENTICATION}"
+        fi
+
         # 确保统一延迟和并发连接
         ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
-        
+
         # 注入 tun 配置
         inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
         inject_dns "${CONFIG_FILE}" "${DNS_OVERRIDE}"
-        
+
         # 确保 external-controller 配置正确
         ensure_external_controller "${CONFIG_FILE}"
 
@@ -761,7 +817,7 @@ if [ -n "${SUB_URL}" ]; then
             return 1
         fi
         # ========================================
-        
+
         # 启动 mihomo
         if ! start_mihomo; then
             log_error "❌ mihomo 启动失败，请检查下载的配置文件"
@@ -785,16 +841,21 @@ else
     if [ -n "${ALLOW_LAN}" ]; then
         update_allow_lan "${CONFIG_FILE}" "${ALLOW_LAN}"
     fi
-    
+
+    # 更新 authentication（如果设置了 AUTHENTICATION 环境变量）
+    if [ -n "${AUTHENTICATION}" ]; then
+        update_authentication "${CONFIG_FILE}" "${AUTHENTICATION}"
+    fi
+
     # 确保统一延迟和并发连接
     ensure_unified_delay_and_tcp_concurrent "${CONFIG_FILE}"
-    
+
     # 注入 tun 配置
     inject_tun "${CONFIG_FILE}" "${TUN_ENABLED}"
-    
+
     # 确保 external-controller 配置正确
     ensure_external_controller "${CONFIG_FILE}"
-    
+
     # 启动 mihomo
     if ! start_mihomo; then
         log_error "❌ mihomo 启动失败，请检查配置文件"
